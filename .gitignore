@@ -2,6 +2,8 @@
 data/ml-*/
 data/*.csv
 data/*.zip
+data/movielens/*.csv
+data/movielens/*.zip
 
 # Trained model artefacts
 models/als_model/
