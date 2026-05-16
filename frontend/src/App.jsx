@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { getRecommendations, getUsers } from './services/api'
+import ColdStartPanel from './components/ColdStartPanel'
 import LoadingSpinner from './components/LoadingSpinner'
 import RecommendationList from './components/RecommendationList'
 import UserSelector from './components/UserSelector'
@@ -8,10 +9,10 @@ import './App.css'
 export default function App() {
   const [users, setUsers]               = useState([])
   const [selectedUser, setSelectedUser] = useState(null)
-  const [recommendations, setRecommendations] = useState(null)
+  const [recData, setRecData]           = useState(null)   // full response object
   const [loading, setLoading]           = useState(false)
   const [error, setError]               = useState(null)
-  const [recUserId, setRecUserId]       = useState(null)
+  const [pendingUserId, setPendingUserId] = useState(null) // user that triggered cold-start
 
   useEffect(() => {
     getUsers()
@@ -22,23 +23,32 @@ export default function App() {
   async function handleGetRecommendations(userId) {
     setLoading(true)
     setError(null)
-    setRecommendations(null)
-    setRecUserId(userId)
+    setRecData(null)
+    setPendingUserId(null)
     try {
       const res = await getRecommendations(userId, 10)
-      setRecommendations(res.data.recommendations || [])
+      const data = res.data
+      if (data.cold_start) {
+        // ALS had no data — show the cold-start panel instead of empty results
+        setPendingUserId(userId)
+      } else {
+        setRecData(data)
+      }
     } catch (err) {
-      const detail = err.response?.data?.detail
       setError(
         err.response?.status === 503
-          ? '🔧 Model not trained yet. Run train_and_save.py first.'
-          : err.response?.status === 404
-          ? `User #${userId} not found in training data.`
-          : detail || 'Unable to reach the recommendation server.',
+          ? '🔧 Model not trained yet. Run: bash run.sh train'
+          : err.response?.data?.detail || 'Unable to reach the recommendation server.',
       )
     } finally {
       setLoading(false)
     }
+  }
+
+  // Called when ColdStartPanel successfully fetches results
+  function handleColdStartResult(data) {
+    setPendingUserId(null)
+    setRecData(data)
   }
 
   return (
@@ -59,12 +69,25 @@ export default function App() {
 
         {loading && <LoadingSpinner message="Generating recommendations with Spark ALS…" />}
 
-        <RecommendationList
-          recommendations={recommendations}
-          userId={recUserId}
-          loading={loading}
-          error={error}
-        />
+        {/* Cold-start panel — shown when user is new */}
+        {!loading && pendingUserId && (
+          <ColdStartPanel
+            userId={pendingUserId}
+            onResult={handleColdStartResult}
+          />
+        )}
+
+        {/* Normal results (ALS or cold-start strategy) */}
+        {!loading && !pendingUserId && (
+          <RecommendationList
+            recommendations={recData?.recommendations ?? null}
+            userId={recData?.user_id ?? null}
+            coldStart={recData?.cold_start ?? false}
+            coldStartStrategy={recData?.cold_start_strategy ?? null}
+            loading={loading}
+            error={error}
+          />
+        )}
       </main>
 
       <footer className="app-footer">
