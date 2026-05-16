@@ -1,0 +1,43 @@
+# MovieLens data (large, not committed)
+data/ml-*/
+data/*.csv
+data/*.zip
+
+# Trained model artefacts
+models/als_model/
+models/*.parquet
+models/*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+.env
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Node / Frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+logs/*.log
+logs/*.pid
