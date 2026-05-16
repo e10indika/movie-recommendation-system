@@ -143,6 +143,7 @@ cmd_usage() {
   echo ""
   echo -e "${BOLD}Usage: bash run.sh <command>${NC}"
   echo ""
+  echo "  all             Full pipeline: setup + train + start (first-time use)"
   echo "  setup           Install Python venv + npm dependencies"
   echo "  train           Download MovieLens data + train ALS model"
   echo "  start           Start backend + frontend"
@@ -154,13 +155,25 @@ cmd_usage() {
   echo "  logs frontend   Tail frontend log"
   echo ""
   echo "First-time setup:"
+  echo "  bash run.sh all"
+  echo ""
+  echo "Or step by step:"
   echo "  bash run.sh setup && bash run.sh train && bash run.sh start"
   echo ""
 }
 
 # ── dispatch ───────────────────────────────────────────────────────────────
 CMD="${1:-}"
+cmd_all() {
+  banner "all"
+  info "Running: setup → train → start"
+  cmd_setup
+  cmd_train
+  cmd_start
+}
+
 case "$CMD" in
+  all)            cmd_all            ;;
   setup)          cmd_setup          ;;
   train)          cmd_train          ;;
   start)          cmd_start          ;;
