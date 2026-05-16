@@ -43,3 +43,4 @@ frontend/.vite/
 # Logs
 logs/*.log
 logs/*.pid
+logs/*.txt
